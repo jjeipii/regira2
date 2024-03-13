@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt'); // Importa la llibreria bcrypt per a encriptar
 // creem instancia de sequelize, indicant base de dades
 // en l'exemple: tipus sqlite, desada en memoria (s'esborra cada vegada)
 const sequelize = new Sequelize(
-    'regira2', 'root', 'root',
+    'regira2', 'root', '',
     {
         dialect: 'mysql',
         host: 'localhost',
@@ -163,7 +163,7 @@ Comment.belongsTo(Usuari); // Un Projecte pertany a un únic usuari
 Comment.hasMany(Issue); // Un Projecte pot tenir varis issues
 Issue.belongsTo(Comment); // Un issue pertany a un projecte
 
-//asequelize.sync({force: true}); //
+//sequelize.sync({force: true}); //
 
 module.exports = {
     Tag,

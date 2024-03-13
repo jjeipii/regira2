@@ -19,10 +19,18 @@ const {
     readItemForUser,
     readItemsForUser,
     createItem,
-    getAttributes
+    getAttributesIssue
     } = require('./generic'); 
 
 // AUTENTICACIO
+
+/*
+    USUARIS
+    USUARIS
+    USUARIS
+    USUARIS
+    USUARIS
+*/
 
 // Middleware per verificar el JWT en la cookie
 const checkToken = (req, res, next) => {
@@ -40,52 +48,64 @@ const checkToken = (req, res, next) => {
     }
   };
 
-
+//
 router.get('/usuaris',checkToken, async (req, res) => await readItems(req, res, Usuari))
 
+
+// Endpoint per iniciar sessió d'un usuari
+router.post('/login', async (req, res) => {
+  const { email_usuari, password } = req.body; // Obté l'email i la contrasenya de la petició
+  try {
+    const user = await Usuari.findOne({ where: { email_usuari } }); // Cerca l'usuari pel seu email
+    if (!user) {
+      return res.status(404).json({ error: 'User no trobat' }); // Retorna error 404 si l'usuari no es troba
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password); // Compara la contrasenya proporcionada amb la contrasenya encriptada de l'usuari
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Password incorrecte' }); // Retorna error 401 si la contrasenya és incorrecta
+    }
+    const token = jwt.sign({ usuariId: user.id, userName: user.nom_usuari }, SECRET_KEY, { expiresIn: '2h' }); // Genera un token JWT vàlid durant 2 hores
+    res.cookie('token', token, { httpOnly: false, maxAge: 7200000 }); // Estableix el token com una cookie
+    res.json({ message: 'Login correcte' }); // Retorna missatge d'èxit
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Retorna error 500 amb el missatge d'error
+  }
+});
+
+// Endpoint per registrar un usuari
+router.post('/register', async (req, res) => {
+  try {
+    const { nom_usuari, email_usuari, password } = req.body; // Obté el nom, email i contrasenya de la petició
+    if (!nom_usuari || !email_usuari || !password) {
+      return res.status(400).json({ error: 'Name, email, i password requerits' }); // Retorna error 400 si no es proporcionen el nom, email o contrasenya
+    }
+    const existingUser = await Usuari.findOne({ where: { email_usuari } }); // Comprova si l'email ja està registrat
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email ja existeix' }); // Retorna error 400 si l'email ja està registrat
+    }
+    const usuario = await Usuari.create({ nom_usuari, email_usuari, password }); // Crea l'usuari amb les dades proporcionades
+    res.status(201).json(usuario); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
+  } catch (error) {
+    res.status(500).json({ error: error.message }); // Retorna error 500 amb el missatge d'error
+  }
+});
+
+/*
+    PROJECTES
+    PROJECTES
+    PROJECTES
+    PROJECTES
+    PROJECTES
+    
+*/
+
 router.get('/projectes', checkToken, async (req, res) => await readItemsForUser(req, res, Projecte)); // Llegeix un bolet específic
-router.get('/projectes/estados', checkToken, async (req, res) => await getAttributes(req, res, Issue)); // Llegeix un bolet específic
+router.get('/projectes/estados', checkToken, async (req, res) => await getAttributesIssue(req, res, Issue)); // Llegeix un bolet específic
 router.get('/projectes/:id', checkToken, async (req, res) => await readItemForUser(req, res, Projecte)); // Llegeix un bolet específic
 router.put('/projectes/:id', checkToken, async (req, res) => await updateItem(req, res, Projecte)); // Actualitza un bolet
 router.delete('/projectes/:id', checkToken, async (req, res) => await deleteItem(req, res, Projecte)); // Elimina un bolet
 
-// Endpoint per iniciar sessió d'un usuari
-router.post('/login', async (req, res) => {
-    const { email_usuari, password } = req.body; // Obté l'email i la contrasenya de la petició
-    try {
-      const user = await Usuari.findOne({ where: { email_usuari } }); // Cerca l'usuari pel seu email
-      if (!user) {
-        return res.status(404).json({ error: 'User no trobat' }); // Retorna error 404 si l'usuari no es troba
-      }
-      const passwordMatch = await bcrypt.compare(password, user.password); // Compara la contrasenya proporcionada amb la contrasenya encriptada de l'usuari
-      if (!passwordMatch) {
-        return res.status(401).json({ error: 'Password incorrecte' }); // Retorna error 401 si la contrasenya és incorrecta
-      }
-      const token = jwt.sign({ usuariId: user.id, userName: user.nom_usuari }, SECRET_KEY, { expiresIn: '2h' }); // Genera un token JWT vàlid durant 2 hores
-      res.cookie('token', token, { httpOnly: false, maxAge: 7200000 }); // Estableix el token com una cookie
-      res.json({ message: 'Login correcte' }); // Retorna missatge d'èxit
-    } catch (error) {
-      res.status(500).json({ error: error.message }); // Retorna error 500 amb el missatge d'error
-    }
-  });
 
-// Endpoint per registrar un usuari
-router.post('/register', async (req, res) => {
-    try {
-      const { nom_usuari, email_usuari, password } = req.body; // Obté el nom, email i contrasenya de la petició
-      if (!nom_usuari || !email_usuari || !password) {
-        return res.status(400).json({ error: 'Name, email, i password requerits' }); // Retorna error 400 si no es proporcionen el nom, email o contrasenya
-      }
-      const existingUser = await Usuari.findOne({ where: { email_usuari } }); // Comprova si l'email ja està registrat
-      if (existingUser) {
-        return res.status(400).json({ error: 'Email ja existeix' }); // Retorna error 400 si l'email ja està registrat
-      }
-      const usuario = await Usuari.create({ nom_usuari, email_usuari, password }); // Crea l'usuari amb les dades proporcionades
-      res.status(201).json(usuario); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
-    } catch (error) {
-      res.status(500).json({ error: error.message }); // Retorna error 500 amb el missatge d'error
-    }
-  });
   
 // Endpoint per crear un projecte 
 router.post('/projecte', checkToken, async (req, res, next) => {
@@ -105,6 +125,15 @@ router.post('/projecte', checkToken, async (req, res, next) => {
       res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
     }
   });
+
+/*
+    ISSUES
+    ISSUES
+    ISSUES
+    ISSUES
+    ISSUES
+    
+*/
 
 // Endpoint per crear un issue 
 router.post('/issue', checkToken, async (req, res, next) => {

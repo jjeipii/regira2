@@ -52,7 +52,7 @@ const createItem = async (req,res,Model) => {
     }
 }
 
-const getAttributes = async (req,res,Model) => {
+const getAttributesIssue = async (req,res,Model ) => {
   try {
       const attributes = await Model.rawAttributes.estado_issue.values;
       res.status(201).json(attributes);
@@ -67,5 +67,5 @@ module.exports = {
     createItem,
     readItemForUser,
     readItemsForUser,
-    getAttributes
+    getAttributesIssue
 }  
