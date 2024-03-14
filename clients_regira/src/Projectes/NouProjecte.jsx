@@ -31,7 +31,7 @@ export default () => {
               credentials: 'include',
             }
         
-            fetch(API_URL+'/projecte' , options)
+            fetch(API_URL+'/projecte/new' , options)
               .then(res => res.json())  
               .then(data => {
                 console.log("resp", data);

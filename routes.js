@@ -108,7 +108,7 @@ router.delete('/projectes/:id', checkToken, async (req, res) => await deleteItem
 
   
 // Endpoint per crear un projecte 
-router.post('/projecte', checkToken, async (req, res, next) => {
+router.post('/projecte/new', checkToken, async (req, res, next) => {
     try {
       const user = await Usuari.findByPk(req.usuariId); // Cerca l'usuari pel seu ID
       if (!user) {
@@ -126,6 +126,23 @@ router.post('/projecte', checkToken, async (req, res, next) => {
     }
   });
 
+// Endpoint per agafar issues per a un projecte
+router.get('/projecte/:id/issues', checkToken, async (req, res, next) => {
+  try {
+    const user = await Usuari.findByPk(req.usuariId); // Cerca l'usuari pel seu ID
+    if (!user) {
+      return res.status(500).json({ error: 'User no trobat' }); // Retorna error 500 si no es troba l'usuari
+    }
+    const issues = await Issue.findAll({where: {projecteId : req.params.id}}); // Cerca l'usuari pel seu ID
+    if(!issues){ 
+      return res.status(500).json({ error: 'Issues no trobats' });
+    }
+    res.status(201).json(issues); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
+  } catch (error) {
+    res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
+  }
+});
+
 /*
     ISSUES
     ISSUES
@@ -136,7 +153,7 @@ router.post('/projecte', checkToken, async (req, res, next) => {
 */
 
 // Endpoint per crear un issue 
-router.post('/issue', checkToken, async (req, res, next) => {
+router.post('/issue/new', checkToken, async (req, res, next) => {
   try {
     const user = await Usuari.findByPk(req.usuariId); // Cerca l'usuari pel seu ID
     if (!user) {

@@ -51,7 +51,7 @@ export default () => {
               credentials: 'include',
             }
         
-            fetch(API_URL+'/issue' , options)
+            fetch(API_URL+'/issue/new' , options)
               .then(res => res.json())  
               .then(data => {
                 console.log("resp", data);
@@ -80,7 +80,7 @@ export default () => {
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nom_issue">
                         Estado
                     </label>
-                    <select name="estados" className=" capitalize" onChange={(e) => setEstado(e.target.vale)}>
+                    <select name="estados" className=" capitalize" onChange={(e) => setEstado(e.target.value)}>
                         {estados.map((estadoM,key) => (
                             <option key={key} value={estadoM} className=" capitalize">
                                 {estadoM}
