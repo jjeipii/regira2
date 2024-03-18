@@ -9,12 +9,9 @@ import {useDraggable} from '@dnd-kit/core';
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
 
-  function newDrag() {
-    console.log("dasa")
-}
 
   return (
-    <div ref={setNodeRef} onClick={props.click} style={style} {...listeners} {...attributes}>
+    <div ref={setNodeRef} key={props.issueId} style={style} {...listeners} {...attributes}>
       {props.children}
     </div>
   )

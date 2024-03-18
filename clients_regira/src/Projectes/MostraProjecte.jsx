@@ -1,81 +1,69 @@
-import { React, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DndContext } from '@dnd-kit/core';
 
 import Droppable from '../DragsAndDrops/Droppable';
 import Draggable from '../DragsAndDrops/Draggable';
 
-
 const API_URL = 'http://localhost:3000/api';
 
+const colors = ['bg-red-200', 'bg-yellow-200', 'bg-blue-200', 'bg-purple-200', 'bg-green-200', 'bg-neutral-200'];
+
 export default () => {
-
-    const { idProj } = useParams()
-    const [projecte, setProjecte] = useState({})
-    const [estados, setEstados] = useState([])
-    const [issues, setIssues] = useState({})
-
-    const [error, setError] = useState(false)
-
-    const colors = ['bg-red-200', 'bg-yellow-200', 'bg-blue-200', 'bg-purple-200', 'bg-green-200', 'bg-neutral-200']
-
+    const { idProj } = useParams();
+    const [projecte, setProjecte] = useState({});
+    const [estados, setEstados] = useState([]);
+    const [issues, setIssues] = useState({});
+    const [error, setError] = useState(false);
+    const [draggs, setDraggs] = useState([]);
     const [parent, setParent] = useState([]);
-    const draggableMarkup = (
-        <Draggable id="draggable">Drag me</Draggable>
-    );
-
-    const opcions = {
-        credentials: 'include',
-    }
 
     useEffect(() => {
-        fetch(API_URL + `/projectes/${idProj}`, opcions)
-            .then(resp => resp.json())
-            .then(data => {
-                if (data.error) {
-                    setError(data.error)
-                } else {
-                    console.log(data)
-                    setProjecte(data);
-                }
-            })
+        const opcions = {
+            credentials: 'include',
+        };
 
-    }, [])
-
-    useEffect(() => {
         fetch(API_URL + '/projectes/estados', opcions)
             .then(resp => resp.json())
             .then(data => {
                 if (data.error) {
-                    setError(true)
+                    setError(data.error);
                 } else {
                     setEstados(data);
-                    setParent(data[0])
                 }
-            })
-    }, [])
+            });
 
-    useEffect(() => {
+        fetch(API_URL + `/projectes/${idProj}`, opcions)
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.error) {
+                    setError(data.error);
+                } else {
+                    setProjecte(data);
+                }
+            });
+
         fetch(API_URL + `/projecte/${idProj}/issues`, opcions)
             .then(resp => resp.json())
             .then(data => {
                 if (data.error) {
-                    setError(data.error)
+                    setError(data.error);
                 } else {
-                    console.log(data)
-                    setIssues(data)
-                    const cpIssuesValors = []
-                    data.map((issue, key) =>cpIssuesValors[key] =  issue.estado_issue)
-                    setParent([...cpIssuesValors])
+                    const cpIssuesValors = [];
+                    const cpDraggs = [];
+                    data.forEach(issue => {
+                        cpIssuesValors.push(issue.estado_issue);
+                        cpDraggs.push(<Draggable id={issue.estado_issue} key={issue.id} issueId={issue.id} children={issue.nom_issue}></Draggable>);
+                    });
+                    setParent(cpIssuesValors);
+                    setDraggs(cpDraggs);
+                    setIssues(data);
                 }
-            })
-
-    }, [])
-
+            });
+    }, [idProj]);
 
     if (error) {
-        return <h1 className='text-red-500'>{error}</h1>
-
+        return <h1 className='text-red-500'>{error}</h1>;
     }
 
     return (
@@ -87,38 +75,50 @@ export default () => {
                 </div>
             </div>
             <div className='flex overflow-x-auto h-[500px] overflow-y-hidden space-x-8 w-full'>
-                <DndContext onDragEnd={handleDragEnd} >
+                <DndContext onDragEnd={handleDragEnd}>
                     {estados.map((estado, estadoKey) => (
-                        // We updated the Droppable component so it would accept an `id`
-                        // prop and pass it to `useDroppable`
                         <Droppable key={estado} id={estado} className={`${colors[estadoKey]} w-[400px] h-full text-center flex-shrink-0 rounded-md border-2`}>
-                            
-                                <p className="text-xl font-medium py-6 uppercase">{estados[estadoKey]}</p>
-                                {parent === estado ? draggableMarkup : ''}  
-                                {issues.map((issue, issueNum) => {
-                                    if (issue.estado_issue == estado) {
-                                        return (<Draggable click={hola} id={issue.id} key={issueNum}>{issue.nom_issue}</Draggable>)
-                                    }
-                                })}
-
+                            <p className="text-xl font-medium py-6 uppercase">{estado}</p>
+                            {draggs.map(drag => { if (drag.props.id == estado) return drag })}
                         </Droppable>
                     ))}
-
                 </DndContext>
             </div>
         </>
-    )
-    function handleDragEnd(event,key) {
+    );
+
+    function handleDragEnd(event) {
         const { over } = event;
+        const dragText = event.activatorEvent.srcElement.innerHTML;
 
-        // If the item is dropped over a container, set it as the parent
-        // otherwise reset the parent to `null`
-        setParent(over === null ? parent : over.id);
+        // Encuentra el elemento arrastrable correspondiente por su texto
+        const dragRef = draggs.find(drag => drag.props.children === dragText);
 
+        // Si no se encuentra el elemento arrastrable, salimos de la función
+        if (!dragRef) return;
+
+        const dragIndex = draggs.findIndex(drag => drag.props.children === dragText);
+
+        // Actualiza el elemento arrastrable con el nuevo id
+        const updatedDragRef = React.cloneElement(dragRef, { id: over ? over.id : parent[dragIndex] });
+        console.log(event)
+
+        // Crea una nueva matriz con el elemento arrastrable actualizado
+        const updatedDraggs = [...draggs];
+        updatedDraggs[dragIndex] = updatedDragRef;
+
+        // Actualiza el estado con la nueva matriz de elementos arrastrables
+        setDraggs(updatedDraggs);
+
+        // Actualiza el estado parent si es necesario
+        const updatedParent = [...parent];
+        updatedParent[dragRef.props.issueId - 1] = over ? over.id : parent[dragIndex];
+        setParent(updatedParent);
+
+        console.log(updatedDraggs)
+        console.log(updatedParent)
+
+
+        //setParent(over === null ? parent : over.id);
     }
-
-    function hola() {
-        console.log("event")
-    }
-    
-}
+};
