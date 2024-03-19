@@ -4,6 +4,7 @@ import { DndContext } from '@dnd-kit/core';
 
 import Droppable from '../DragsAndDrops/Droppable';
 import Draggable from '../DragsAndDrops/Draggable';
+import EstadosIssues from "../DragsAndDrops/EstadosIssues";
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -18,11 +19,14 @@ export default () => {
     const [draggs, setDraggs] = useState([]);
     const [parent, setParent] = useState([]);
 
+    const [nEstados, setNEstados] = useState({})
+    const [neutral, setNeutral] = useState({})
+
+
     useEffect(() => {
         const opcions = {
             credentials: 'include',
         };
-
         fetch(API_URL + '/projectes/estados', opcions)
             .then(resp => resp.json())
             .then(data => {
@@ -30,9 +34,17 @@ export default () => {
                     setError(data.error);
                 } else {
                     setEstados(data);
+                    const nEstados = {}
+                    data.map(estado => nEstados[estado] = {})
+                    setNEstados(nEstados);
                 }
             });
+    }, []);
 
+    useEffect(() => {
+        const opcions = {
+            credentials: 'include',
+        };
         fetch(API_URL + `/projectes/${idProj}`, opcions)
             .then(resp => resp.json())
             .then(data => {
@@ -42,7 +54,12 @@ export default () => {
                     setProjecte(data);
                 }
             });
+    }, []);
 
+    useEffect(() => {
+        const opcions = {
+            credentials: 'include',
+        };
         fetch(API_URL + `/projecte/${idProj}/issues`, opcions)
             .then(resp => resp.json())
             .then(data => {
@@ -51,7 +68,7 @@ export default () => {
                 } else {
                     const cpIssuesValors = [];
                     const cpDraggs = [];
-                    data.forEach(issue => {
+                    data.forEach((issue, key) => {
                         cpIssuesValors.push(issue.estado_issue);
                         cpDraggs.push(<Draggable id={issue.estado_issue} key={issue.id} issueId={issue.id} children={issue.nom_issue}></Draggable>);
                     });
@@ -60,18 +77,136 @@ export default () => {
                     setIssues(data);
                 }
             });
+
+
     }, []);
+
+    useEffect(() => {
+
+        if (issues && nEstados && Array.isArray(issues)) {
+
+            let newCpNEstados = { ...nEstados }
+            issues.map((issue) => {
+                const estado = issue.estado_issue
+                const id = issue.id
+                const obj = { [estado]: { ...(newCpNEstados[estado] || {}), [id]: issue } }
+                newCpNEstados = { ...newCpNEstados, ...obj }
+            })
+            setNEstados(newCpNEstados)
+            setNeutral(newCpNEstados)
+            
+        } else {
+            <h1 className='text-red-500'>Cargant...</h1>;
+        }
+        
+    }, [issues]);
+
+
+    const dragEndHandler = (e) => {
+        // Check if item is drag into unknown area
+        if (!e.over || !e.active.data.current || !e.over.data.current) return;
+
+        // Check if item position is the same
+        if (e.active.id === e.over.id) return;
+
+        // Check if item is moved outside of the column
+        if (
+            e.active.data.current.sortable.containerId !==
+            e.over.data.current.sortable.containerId
+        )
+            return;
+
+        // Sort the items list order based on item target position
+        const containerName = e.active.data.current.sortable.containerId;
+        nEstados((taskList) => {
+            const temp = { ...taskList };
+            if (!e.over) return temp;
+            const oldIdx = temp[containerName].indexOf(e.active.id.toString());
+            const newIdx = temp[containerName].indexOf(e.over.id.toString());
+            temp[containerName] = arrayMove(temp[containerName], oldIdx, newIdx);
+            return temp;
+        });
+    };
+
+    const dragOverHandler = (e) => {
+        // Check if item is drag into unknown area
+        if (!e.over) return;
+
+        // Get the initial and target sortable list name
+        const initialContainer = e.active.data.current?.sortable?.containerId;
+        const targetContainer = e.over.data.current?.sortable?.containerId;
+
+        // if there are none initial sortable list name, then item is not sortable item
+        if (!initialContainer) return;
+
+        // Order the item list based on target item position
+        setTaskList((taskList) => {
+            const temp = { ...taskList };
+
+            // If there are no target container then item is moved into a droppable zone
+            // droppable = whole area of the sortable list (works when the sortable list is empty)
+            if (!targetContainer) {
+                // If item is already there then don't re-added it
+                if (taskList[e.over.id].includes(e.active.id.toString())) return temp;
+
+                // Remove item from it's initial container
+                temp[initialContainer] = temp[initialContainer].filter(
+                    (task) => task !== e.active.id.toString()
+                );
+
+                // Add item to it's target container which the droppable zone belongs to
+                temp[e.over.id].push(e.active.id.toString());
+
+                return temp;
+            }
+
+            // If the item is drag around in the same container then just reorder the list
+            if (initialContainer === targetContainer) {
+                const oldIdx = temp[initialContainer].indexOf(e.active.id.toString());
+                const newIdx = temp[initialContainer].indexOf(e.over.id.toString());
+                temp[initialContainer] = arrayMove(
+                    temp[initialContainer],
+                    oldIdx,
+                    newIdx
+                );
+            } else {
+                // If the item is drag into another different container
+
+                // Remove item from it's initial container
+                temp[initialContainer] = temp[initialContainer].filter(
+                    (task) => task !== e.active.id.toString()
+                );
+
+                // Add item to it's target container
+                const newIdx = temp[targetContainer].indexOf(e.over.id.toString());
+                temp[targetContainer].splice(newIdx, 0, e.active.id.toString());
+            }
+
+            return temp;
+        });
+    };
 
     if (error) {
         return <h1 className='text-red-500'>{error}</h1>;
     }
 
-    if (parent.length < 1) {
+    const allStatesEmpty = Object.values(nEstados).every(state => Object.keys(state).length === 0);
+
+
+    if (parent.length < 1 || !nEstados || allStatesEmpty) {
         return <h1 className='text-red-500'>Cargant...</h1>;
     }
 
+    if (!nEstados) {
+        return <h1 className='text-red-500'>Cargant...</h1>;
+    }
+
+    
+
     return (
+
         <>
+        {console.log(nEstados)}
             <div className="flex justify-between pb-6">
                 <h1 className="text-2xl font-medium">{projecte.nom_projecte}</h1>
                 <div className="">
@@ -90,8 +225,23 @@ export default () => {
                     ))}
                 </DndContext>
             </div>
+            <DndContext onDragEnd={dragEndHandler} onDragOver={dragOverHandler}>
+                <main >
+                    <h1>Multi Sortable List</h1>
+                    <section>
+                    {estados.map((key) => {
+                        if (neutral[key][1]['estado_issue'] == key){
+                        console.log(neutral[key][1]['id'])
+                    }else {
+                        console.log(key)
+                    }
+                    })}
+                    </section>
+                </main>
+            </DndContext>
         </>
     );
+
 
     function handleDragEnd(event) {
         const { active, over } = event;
