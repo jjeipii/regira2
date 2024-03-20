@@ -11,9 +11,9 @@ const EstadosIssues = (props) => {
       <div />
       <SortableContext id={props.title} items={props.tasks}>
         <ul ref={setNodeRef} >
-          {props.tasks.map((task) => (
-            <IssueDrag key={task} title={task} />
-          ))}
+          {props.tasks.map((task) => {
+            return <IssueDrag key={task} title={task} />
+          })}
         </ul>
       </SortableContext>
     </article>

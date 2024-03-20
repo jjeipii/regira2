@@ -14,13 +14,13 @@ export default () => {
     const { idProj } = useParams();
     const [projecte, setProjecte] = useState({});
     const [estados, setEstados] = useState([]);
-    const [issues, setIssues] = useState({});
+    const [issues, setIssues] = useState([]);
     const [error, setError] = useState(false);
     const [draggs, setDraggs] = useState([]);
     const [parent, setParent] = useState([]);
 
-    const [nEstados, setNEstados] = useState({})
-    const [neutral, setNeutral] = useState({})
+    const [nEstados, setNEstados] = useState([])
+    const [neutral, setNeutral] = useState([])
 
 
     useEffect(() => {
@@ -34,8 +34,8 @@ export default () => {
                     setError(data.error);
                 } else {
                     setEstados(data);
-                    const nEstados = {}
-                    data.map(estado => nEstados[estado] = {})
+                    const nEstados = []
+                    data.map(estado => nEstados[estado] = [])
                     setNEstados(nEstados);
                 }
             });
@@ -66,15 +66,17 @@ export default () => {
                 if (data.error) {
                     setError(data.error);
                 } else {
+                    const cpIssues = []
                     const cpIssuesValors = [];
                     const cpDraggs = [];
                     data.forEach((issue, key) => {
-                        cpIssuesValors.push(issue.estado_issue);
+                        cpIssues.push(issue)
+                        cpIssuesValors.push([issue.id,issue.estado_issue]);
                         cpDraggs.push(<Draggable id={issue.estado_issue} key={issue.id} issueId={issue.id} children={issue.nom_issue}></Draggable>);
                     });
                     setParent(cpIssuesValors);
                     setDraggs(cpDraggs);
-                    setIssues(data);
+                    setIssues(cpIssues);
                 }
             });
 
@@ -83,17 +85,19 @@ export default () => {
 
     useEffect(() => {
 
-        if (issues && nEstados && Array.isArray(issues)) {
+        if ( Array.isArray(nEstados) && Array.isArray(issues)  && issues.length != 0 ) {
 
-            let newCpNEstados = { ...nEstados }
+            let newCpNEstados = [ ...nEstados ]
             issues.map((issue) => {
                 const estado = issue.estado_issue
                 const id = issue.id
-                const obj = { [estado]: { ...(newCpNEstados[estado] || {}), [id]: issue } }
-                newCpNEstados = { ...newCpNEstados, ...obj }
+                newCpNEstados.push(issue)
             })
             setNEstados(newCpNEstados)
             setNeutral(newCpNEstados)
+            console.log(newCpNEstados, estados, parent)
+            console.log(Object.entries(newCpNEstados))
+            // 
             
         } else {
             <h1 className='text-red-500'>Cargant...</h1>;
@@ -206,7 +210,6 @@ export default () => {
     return (
 
         <>
-        {console.log(nEstados)}
             <div className="flex justify-between pb-6">
                 <h1 className="text-2xl font-medium">{projecte.nom_projecte}</h1>
                 <div className="">
@@ -230,11 +233,14 @@ export default () => {
                     <h1>Multi Sortable List</h1>
                     <section>
                     {estados.map((key) => {
-                        if (neutral[key][1]['estado_issue'] == key){
-                        console.log(neutral[key][1]['id'])
-                    }else {
+                        parent.map((issueInfo, index) => {
+                            if (issueInfo[1]== key){
+                                console.log(nEstados[index].nom_issue)
+                                console.log(issueInfo[0])
+                                return <EstadosIssues key={issueInfo[0]} title={issueInfo[0]} tasks={nEstados[index].nom_issue}/>
+                            }
+                        })
                         console.log(key)
-                    }
                     })}
                     </section>
                 </main>

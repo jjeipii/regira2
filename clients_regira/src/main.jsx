@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import App from './App.jsx'
 import Inici from './Inici.jsx';
+import Probando from './Probando.jsx';
 import Login from './LoginAndRegister/Login';
 import LlistaProjectes from './Projectes/LlistaProjectes.jsx';
 import MostraProjecte from './Projectes/MostraProjecte.jsx';
@@ -22,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/projectes" element={<LlistaProjectes />} />
-          <Route path="/projecte/:idProj" element={<MostraProjecte />} />
+          <Route path="/projecte/:idProj" element={<Probando />} />
           <Route path="/projecte/:idProj/newIssue" element={<NouIssue />} />
           <Route path="/projecte/nou" element={<NouProjecte />} />
           
