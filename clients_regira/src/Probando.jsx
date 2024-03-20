@@ -269,8 +269,9 @@ const Probando = () => {
       <h1>Multi Sortable List</h1>
       <section className={styles.container}>
         {estados.map((estado,key) => { 
-          const refEstado = Object.entries(nEstados)
-          const keysEstados = Object.keys(refEstado).length
+          const refEstado = Object.entries(Object.values(nEstados)[key][1])
+          const keysEstados = Object.keys(refEstado).length == 0 
+          
           console.log(refEstado)
           return <TaskList key={estado} title={estado} tasks={refEstado}/>})
         }
