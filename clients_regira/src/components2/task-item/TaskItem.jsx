@@ -3,14 +3,11 @@ import { FC } from "react";
 import styles from "./TaskItem.module.css";
 import { CSS } from "@dnd-kit/utilities";
 
-interface ITaskItem {
-  title: string;
-}
 
-const TaskItem: FC<ITaskItem> = (props) => {
+const TaskItem= (props) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
-      id: props.title
+      id: props.id || props.title
     });
   return (
     <li
