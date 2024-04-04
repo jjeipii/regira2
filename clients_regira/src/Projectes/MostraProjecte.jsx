@@ -1,27 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { DndContext } from '@dnd-kit/core';
-
-import Droppable from '../DragsAndDrops/Droppable';
-import Draggable from '../DragsAndDrops/Draggable';
-import EstadosIssues from "../DragsAndDrops/EstadosIssues";
+import { FiPlus, FiTrash } from "react-icons/fi";
+import { motion } from "framer-motion";
+import { FaFire } from "react-icons/fa";
+import { useParams } from "react-router-dom";
 
 const API_URL = 'http://localhost:3000/api';
+const colors = ['text-red-200', 'text-yellow-200', 'text-blue-200', 'text-purple-200', 'text-green-200', 'text-neutral-200'];
 
-const colors = ['bg-red-200', 'bg-yellow-200', 'bg-blue-200', 'bg-purple-200', 'bg-green-200', 'bg-neutral-200'];
+export const MostraProjecte = () => {
+    return (
+        <div className="h-screen w-full bg-neutral-900 text-neutral-50">
+            <Board />
+        </div>
+    );
+};
 
-export default () => {
+const Board = () => {
     const { idProj } = useParams();
-    const [projecte, setProjecte] = useState({});
-    const [estados, setEstados] = useState([]);
     const [issues, setIssues] = useState([]);
-    const [error, setError] = useState(false);
-    const [draggs, setDraggs] = useState([]);
-    const [parent, setParent] = useState([]);
-
-    const [nEstados, setNEstados] = useState([])
-    const [neutral, setNeutral] = useState([])
-
+    const [estados, setEstados] = useState([]);
 
     useEffect(() => {
         const opcions = {
@@ -34,24 +31,6 @@ export default () => {
                     setError(data.error);
                 } else {
                     setEstados(data);
-                    const nEstados = []
-                    data.map(estado => nEstados[estado] = [])
-                    setNEstados(nEstados);
-                }
-            });
-    }, []);
-
-    useEffect(() => {
-        const opcions = {
-            credentials: 'include',
-        };
-        fetch(API_URL + `/projectes/${idProj}`, opcions)
-            .then(resp => resp.json())
-            .then(data => {
-                if (data.error) {
-                    setError(data.error);
-                } else {
-                    setProjecte(data);
                 }
             });
     }, []);
@@ -66,250 +45,308 @@ export default () => {
                 if (data.error) {
                     setError(data.error);
                 } else {
-                    const cpIssues = []
-                    const cpIssuesValors = [];
-                    const cpDraggs = [];
-                    data.forEach((issue, key) => {
-                        cpIssues.push(issue)
-                        cpIssuesValors.push([issue.id,issue.estado_issue]);
-                        cpDraggs.push(<Draggable id={issue.estado_issue} key={issue.id} issueId={issue.id} children={issue.nom_issue}></Draggable>);
-                    });
-                    setParent(cpIssuesValors);
-                    setDraggs(cpDraggs);
-                    setIssues(cpIssues);
+                    setIssues(data);
+
                 }
             });
-
-
     }, []);
 
-    useEffect(() => {
-
-        if ( Array.isArray(nEstados) && Array.isArray(issues)  && issues.length != 0 ) {
-
-            let newCpNEstados = [ ...nEstados ]
-            issues.map((issue) => {
-                const estado = issue.estado_issue
-                const id = issue.id
-                newCpNEstados.push(issue)
-            })
-            setNEstados(newCpNEstados)
-            setNeutral(newCpNEstados)
-            console.log(newCpNEstados, estados, parent)
-            console.log(Object.entries(newCpNEstados))
-            // 
-            
-        } else {
-            <h1 className='text-red-500'>Cargant...</h1>;
-        }
-        
-    }, [issues]);
-
-
-    const dragEndHandler = (e) => {
-        // Check if item is drag into unknown area
-        if (!e.over || !e.active.data.current || !e.over.data.current) return;
-
-        // Check if item position is the same
-        if (e.active.id === e.over.id) return;
-
-        // Check if item is moved outside of the column
-        if (
-            e.active.data.current.sortable.containerId !==
-            e.over.data.current.sortable.containerId
-        )
-            return;
-
-        // Sort the items list order based on item target position
-        const containerName = e.active.data.current.sortable.containerId;
-        nEstados((taskList) => {
-            const temp = { ...taskList };
-            if (!e.over) return temp;
-            const oldIdx = temp[containerName].indexOf(e.active.id.toString());
-            const newIdx = temp[containerName].indexOf(e.over.id.toString());
-            temp[containerName] = arrayMove(temp[containerName], oldIdx, newIdx);
-            return temp;
-        });
-    };
-
-    const dragOverHandler = (e) => {
-        // Check if item is drag into unknown area
-        if (!e.over) return;
-
-        // Get the initial and target sortable list name
-        const initialContainer = e.active.data.current?.sortable?.containerId;
-        const targetContainer = e.over.data.current?.sortable?.containerId;
-
-        // if there are none initial sortable list name, then item is not sortable item
-        if (!initialContainer) return;
-
-        // Order the item list based on target item position
-        setTaskList((taskList) => {
-            const temp = { ...taskList };
-
-            // If there are no target container then item is moved into a droppable zone
-            // droppable = whole area of the sortable list (works when the sortable list is empty)
-            if (!targetContainer) {
-                // If item is already there then don't re-added it
-                if (taskList[e.over.id].includes(e.active.id.toString())) return temp;
-
-                // Remove item from it's initial container
-                temp[initialContainer] = temp[initialContainer].filter(
-                    (task) => task !== e.active.id.toString()
-                );
-
-                // Add item to it's target container which the droppable zone belongs to
-                temp[e.over.id].push(e.active.id.toString());
-
-                return temp;
-            }
-
-            // If the item is drag around in the same container then just reorder the list
-            if (initialContainer === targetContainer) {
-                const oldIdx = temp[initialContainer].indexOf(e.active.id.toString());
-                const newIdx = temp[initialContainer].indexOf(e.over.id.toString());
-                temp[initialContainer] = arrayMove(
-                    temp[initialContainer],
-                    oldIdx,
-                    newIdx
-                );
-            } else {
-                // If the item is drag into another different container
-
-                // Remove item from it's initial container
-                temp[initialContainer] = temp[initialContainer].filter(
-                    (task) => task !== e.active.id.toString()
-                );
-
-                // Add item to it's target container
-                const newIdx = temp[targetContainer].indexOf(e.over.id.toString());
-                temp[targetContainer].splice(newIdx, 0, e.active.id.toString());
-            }
-
-            return temp;
-        });
-    };
-
-    if (error) {
-        return <h1 className='text-red-500'>{error}</h1>;
-    }
-
-    const allStatesEmpty = Object.values(nEstados).every(state => Object.keys(state).length === 0);
-
-
-    if (parent.length < 1 || !nEstados || allStatesEmpty) {
-        return <h1 className='text-red-500'>Cargant...</h1>;
-    }
-
-    if (!nEstados) {
-        return <h1 className='text-red-500'>Cargant...</h1>;
-    }
-
-    
 
     return (
+        <div className="flex h-full w-full gap-3 overflow-scroll p-12">
+            {
+                estados.map((estado, key) =>
+                    <Column
+                        key={key}
+                        nom_issue={estado}
+                        estado_issue={estado}
+                        headingColor={`${colors[key]}`}
+                        idProj={idProj}
+                        issues={issues}
+                        setIssues={setIssues}
+                    />)
+            }
 
+            <BurnBarrel issues={issues} setIssues={setIssues} />
+        </div>
+    );
+};
+
+const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idProj }) => {
+    const [active, setActive] = useState(false);
+
+    const handleDragStart = (e, issue) => {
+        e.dataTransfer.setData("issueId", issue.id);
+    };
+
+    const handleDragEnd = (e) => {
+        const issueId = e.dataTransfer.getData("issueId");
+
+        setActive(false);
+        clearHighlights();
+
+        const indicators = getIndicators();
+        const { element } = getNearestIndicator(e, indicators);
+
+        const before = element.dataset.before || "-1";
+
+        if (before !== issueId) {
+            let copy = [...issues];
+
+            let cardToTransfer = copy.find((c) => c.id.toString() === issueId);
+            if (!cardToTransfer) return;
+            cardToTransfer = { ...cardToTransfer, estado_issue };
+
+            copy = copy.filter((c) => c.id.toString() !== issueId);
+
+            const moveToBack = before === "-1";
+
+            if (moveToBack) {
+                copy.push(cardToTransfer);
+            } else {
+                const insertAtIndex = copy.findIndex((el) => el.id.toString() === before);
+                if (insertAtIndex === undefined) return;
+
+                copy.splice(insertAtIndex, 0, cardToTransfer);
+            }
+
+            setIssues(copy);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        highlightIndicator(e);
+
+        setActive(true);
+    };
+
+    const clearHighlights = (els) => {
+        const indicators = els || getIndicators();
+
+        indicators.forEach((i) => {
+            i.style.opacity = "0";
+        });
+    };
+
+    const highlightIndicator = (e) => {
+        const indicators = getIndicators();
+
+        clearHighlights(indicators);
+
+        const el = getNearestIndicator(e, indicators);
+
+        el.element.style.opacity = "1";
+    };
+
+    const getNearestIndicator = (e, indicators) => {
+        const DISTANCE_OFFSET = 50;
+
+        const el = indicators.reduce(
+            (closest, child) => {
+                const box = child.getBoundingClientRect();
+
+                const offset = e.clientY - (box.top + DISTANCE_OFFSET);
+
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            },
+            {
+                offset: Number.NEGATIVE_INFINITY,
+                element: indicators[indicators.length - 1],
+            }
+        );
+
+        return el;
+    };
+
+    const getIndicators = () => {
+        return Array.from(document.querySelectorAll(`[data-estado_issue="${estado_issue}"]`));
+    };
+
+    const handleDragLeave = () => {
+        clearHighlights();
+        setActive(false);
+    };
+
+    const filteredCards = issues.filter((c) => c.estado_issue === estado_issue);
+
+    return (
+        <div className="w-56 shrink-0">
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className={`font-medium ${headingColor}`}>{nom_issue}</h3>
+                <span className="rounded text-sm text-neutral-400">
+                    {filteredCards.length}
+                </span>
+            </div>
+            <div
+                onDrop={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`h-full w-full transition-colors ${active ? "bg-neutral-800/50" : "bg-neutral-800/0"
+                    }`}
+            >
+                {filteredCards.map((c) => {
+                    return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
+                })}
+                <DropIndicator beforeId={null} estado_issue={estado_issue} />
+                <AddCard estado_issue={estado_issue} setIssues={setIssues} idProj={idProj}/>
+            </div>
+        </div>
+    );
+};
+
+const Card = ({ nom_issue, id, estado_issue, handleDragStart }) => {
+    return (
         <>
-            <div className="flex justify-between pb-6">
-                <h1 className="text-2xl font-medium">{projecte.nom_projecte}</h1>
-                <div className="">
-                    <Link to={`/projecte/${idProj}/newIssue`}><button className="border rounded-md bg-neutral-600 text-zinc-100 hover:shadow-sm hover:bg-neutral-500 p-2 text-sm duration-300" type="submit">New Issue</button></Link>
-                </div>
-            </div>
-            <div className='flex overflow-x-auto h-[500px] overflow-y-hidden space-x-8 w-full'>
-                <DndContext onDragEnd={handleDragEnd}>
-                    {estados.map((estado, estadoKey) => (
-                        <Droppable key={estado} id={estado} className={`${colors[estadoKey]} w-[400px] h-full text-center flex-shrink-0 rounded-md border-2`}>
-                            <p className="text-xl font-medium py-6 uppercase">{estado}</p>
-                            <div>
-                                {draggs.map((drag, key) => { if (drag.props.id === estado) return draggs[key] })}
-                            </div>
-                        </Droppable>
-                    ))}
-                </DndContext>
-            </div>
-            <DndContext onDragEnd={dragEndHandler} onDragOver={dragOverHandler}>
-                <main >
-                    <h1>Multi Sortable List</h1>
-                    <section>
-                    {estados.map((key) => {
-                        parent.map((issueInfo, index) => {
-                            if (issueInfo[1]== key){
-                                console.log(nEstados[index].nom_issue)
-                                console.log(issueInfo[0])
-                                return <EstadosIssues key={issueInfo[0]} title={issueInfo[0]} tasks={nEstados[index].nom_issue}/>
-                            }
-                        })
-                        console.log(key)
-                    })}
-                    </section>
-                </main>
-            </DndContext>
+            <DropIndicator beforeId={id} estado_issue={estado_issue} />
+            <motion.div
+                layout
+                layoutId={id}
+                draggable="true"
+                onDragStart={(e) => handleDragStart(e, { nom_issue, id, estado_issue })}
+                className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
+            >
+                <p className="text-sm text-neutral-100">{nom_issue}</p>
+            </motion.div>
         </>
     );
+};
+
+const DropIndicator = ({ beforeId, estado_issue }) => {
+    return (
+        <div
+            data-before={beforeId || "-1"}
+            data-estado_issue={estado_issue}
+            className="my-0.5 h-0.5 w-full bg-violet-400 opacity-0"
+        />
+    );
+};
+
+const BurnBarrel = ({ issues, setIssues }) => {
+    const [active, setActive] = useState(false);
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setActive(true);
+    };
+
+    const handleDragLeave = () => {
+        setActive(false);
+    };
+
+    const handleDragEnd = (e) => {
+        const issueId = e.dataTransfer.getData("issueId");
+        
+        let cpIssue = [...issues]
+        let delIssue = cpIssue.find((c) => c.id.toString() === issueId).id
+
+        const options = {
+            method: "DELETE",
+            headers: {
+                  'Content-Type': 'application/json',
+              },
+            body: JSON.stringify(delIssue),
+            credentials: 'include',
+          }
+        
+
+        setIssues((pv) => pv.filter((c) => c.id.toString() !== issueId));
 
 
-    function handleDragEnd(event) {
-        const { active, over } = event;
-        const dragText = event.activatorEvent.srcElement.innerHTML;
-        const dragIndex = draggs.findIndex(drag => drag.props.children === dragText);
-        console.log(dragText)
+        setActive(false);
+    };
 
-        // Obtenemos el ID único del elemento arrastrado
-        const draggedItemId = active.id;
+    return (
+        <div
+            onDrop={handleDragEnd}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={`mt-10 grid h-56 w-56 shrink-0 place-content-center rounded border text-3xl ${active
+                ? "border-red-800 bg-red-800/20 text-red-500"
+                : "border-neutral-500 bg-neutral-500/20 text-neutral-500"
+                }`}
+        >
+            {active ? <FaFire className="animate-bounce" /> : <FiTrash />}
+        </div>
+    );
+};
 
-        // Si no hay un droppable sobre el que se soltó el elemento, salimos de la función
-        if (!over) return;
+const AddCard = ({ estado_issue, setIssues, idProj }) => {
+    const [text, setText] = useState("");
+    const [adding, setAdding] = useState(false);
 
-        // Obtenemos el ID del droppable sobre el que se soltó el elemento
-        const droppableId = over.id;
+    const handleSubmit = (e) => {
+        e.preventDefault();
 
-        // Actualizamos el estado solo si el elemento se soltó en un droppable diferente
-        if (draggedItemId && droppableId !== draggedItemId) {
-            // Actualizamos el estado del elemento arrastrado
-            const updatedDraggs = draggs.map(drag => {
-                // Si el ID del elemento arrastrado coincide con el ID del droppable, lo actualizamos
-                if (drag.props.id === draggedItemId) {
-                    return React.cloneElement(drag, { id: droppableId });
-                }
-                return drag;
-            });
+        if (!text.trim().length) return;
 
-            // Actualizamos el estado con los elementos arrastrables actualizados
-            setDraggs(updatedDraggs);
+        const newIssue = {
+            estado_issue,
+            nom_issue: text.trim(),
+            idProjecte: idProj
+        };
+        console.log(newIssue);
 
-            // También puedes actualizar otros estados relacionados según sea necesario
+        const options = {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newIssue),
+            credentials: 'include',
         }
 
-        // const { over } = event;
-        // const dragText = event.activatorEvent.srcElement.innerHTML;
+        fetch(API_URL + '/issue/new', options)
+            .then(res => res.json())
+            .then(data => {
+                console.log("resp", data);
+            })
+            .catch(cosa => console.log(cosa))
 
-        // // Encuentra el elemento arrastrable correspondiente por su texto
-        // const dragRef = draggs.find(drag => drag.props.children === dragText);
+        setIssues((pv) => [...pv, newIssue]);
+        setAdding(false);
+    };
 
-
-        // // Si no se encuentra el elemento arrastrable, salimos de la función
-        // if (!dragRef) return;
-        // const dragIndex = draggs.findIndex(drag => drag.props.children === dragText);
-
-        // // Actualiza el elemento arrastrable con el nuevo id
-        // const updatedDragRef = React.cloneElement(dragRef, { id : over ? over.id : parent[dragIndex] });
-
-        // // Crea una nueva matriz con el elemento arrastrable actualizado
-        // const updatedDraggs = [...draggs];
-        // updatedDraggs[dragIndex] = updatedDragRef;
-
-        // // Actualiza el estado con la nueva matriz de elementos arrastrables
-        // setDraggs(updatedDraggs);
-
-        // // Actualiza el estado parent si es necesario
-        // const updatedParent = [...parent];
-        // updatedParent[dragRef.props.issueId -1] = over ? over.id : parent[dragIndex];
-        // setParent(updatedParent);
-
-        // console.log(updatedDraggs)
-        // console.log(updatedParent)
-
-        //setParent(over === null ? parent : over.id);
-    }
+    return (
+        <>
+            {adding ? (
+                <motion.form layout onSubmit={handleSubmit}>
+                    <textarea
+                        onChange={(e) => setText(e.target.value)}
+                        autoFocus
+                        placeholder="Add new task..."
+                        className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0"
+                    />
+                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                        <button
+                            onClick={() => setAdding(false)}
+                            className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                        >
+                            Close
+                        </button>
+                        <button
+                            type="submit"
+                            className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
+                        >
+                            <span>Add</span>
+                            <FiPlus />
+                        </button>
+                    </div>
+                </motion.form>
+            ) : (
+                <motion.button
+                    layout
+                    onClick={() => setAdding(true)}
+                    className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
+                >
+                    <span>Add issue</span>
+                    <FiPlus />
+                </motion.button>
+            )}
+        </>
+    );
 };

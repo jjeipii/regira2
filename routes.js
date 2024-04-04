@@ -182,6 +182,10 @@ router.post('/issue/new', checkToken, async (req, res, next) => {
     res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
   }
 });
+
+router.delete('/issue/:id/delete', async (req, res) => {
+  
+})
   
 
 module.exports = router;

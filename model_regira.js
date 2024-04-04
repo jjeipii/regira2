@@ -126,32 +126,17 @@ Usuari.beforeCreate(async (user) => {
 
 */
 
-Usuari.hasMany(Projecte); // Usari tiene varios usuarios
-Projecte.belongsTo(Usuari); // Un Projecte pertany a un únic usuari
+Usuari.hasMany(Projecte, { onDelete: 'CASCADE', hooks: true }); 
+Projecte.belongsTo(Usuari); 
 
-Projecte.hasMany(Issue); // Un Projecte pot tenir varis issues
-Issue.belongsTo(Projecte); // Un issue pertany a un projecte
+Projecte.hasMany(Issue, { onDelete: 'CASCADE', hooks: true }); 
+Issue.belongsTo(Projecte); 
 
-Usuari.hasMany(Issue,{
-    foreignKey: "author_id",
-    sourceKey: "id"
-})
+Usuari.hasMany(Issue, { foreignKey: "author_id", sourceKey: "id", onDelete: 'CASCADE', hooks: true });
+Issue.belongsTo(Usuari, { foreignKey: 'author_id', as: 'Author' });
 
-Issue.belongsTo(Usuari, {
-    foreignKey: 'author_id',
-    as: 'Author'
-});
-
-Usuari.hasMany(Issue, {
-    foreignKey: 'user_id',
-    sourceKey: 'id'
-});
-
-// Relación para el usuario asignado al issue
-Issue.belongsTo(Usuari, {
-    foreignKey: 'user_id',
-    as: 'User'
-});
+Usuari.hasMany(Issue, { foreignKey: 'user_id', sourceKey: 'id', onDelete: 'CASCADE', hooks: true });
+Issue.belongsTo(Usuari, { foreignKey: 'user_id', as: 'User' });
 
 Tag.belongsToMany(Issue, { through: TagIssue });
 Issue.belongsToMany(Tag, { through: TagIssue });
@@ -160,8 +145,8 @@ Issue.belongsToMany(Tag, { through: TagIssue });
 Usuari.hasMany(Comment); // Usari tiene varios usuarios
 Comment.belongsTo(Usuari); // Un Projecte pertany a un únic usuari
 
-Comment.hasMany(Issue); // Un Projecte pot tenir varis issues
-Issue.belongsTo(Comment); // Un issue pertany a un projecte
+Issue.hasMany(Comment); // Un Projecte pot tenir varis issues
+Comment.belongsTo(Issue); // Un issue pertany a un projecte
 
 //sequelize.sync({force: true}); //
 
