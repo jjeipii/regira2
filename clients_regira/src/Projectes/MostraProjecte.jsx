@@ -3,6 +3,7 @@ import { FiPlus, FiTrash } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { FaFire } from "react-icons/fa";
 import { useParams } from "react-router-dom";
+import ButtonAddIssue from "../Issues/NewIssue"
 
 const API_URL = 'http://localhost:3000/api';
 const colors = ['text-red-200', 'text-yellow-200', 'text-blue-200', 'text-purple-200', 'text-green-200', 'text-neutral-200'];
@@ -19,16 +20,18 @@ const Board = () => {
     const { idProj } = useParams();
     const [issues, setIssues] = useState([]);
     const [estados, setEstados] = useState([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const opcions = {
             credentials: 'include',
         };
-        fetch(API_URL + '/projectes/estados', opcions)
+        fetch(API_URL + '/issue/estados', opcions)
             .then(resp => resp.json())
             .then(data => {
                 if (data.error) {
                     setError(data.error);
+                    
                 } else {
                     setEstados(data);
                 }
@@ -44,12 +47,14 @@ const Board = () => {
             .then(data => {
                 if (data.error) {
                     setError(data.error);
+                    console.error(data.error);
                 } else {
                     setIssues(data);
 
                 }
             });
     }, []);
+    
 
 
     return (
@@ -243,19 +248,24 @@ const BurnBarrel = ({ issues, setIssues }) => {
         
         let cpIssue = [...issues]
         let delIssue = cpIssue.find((c) => c.id.toString() === issueId).id
-
+ 
         const options = {
             method: "DELETE",
             headers: {
                   'Content-Type': 'application/json',
               },
-            body: JSON.stringify(delIssue),
+            body: JSON.stringify({id:delIssue}),
             credentials: 'include',
           }
-        
 
         setIssues((pv) => pv.filter((c) => c.id.toString() !== issueId));
-
+        
+        fetch(API_URL + '/issue/delete', options)
+            .then(res => res.json())
+            .then(data => {
+                console.log("resp", data);
+            })
+            .catch(cosa => console.log(cosa))
 
         setActive(false);
     };
@@ -275,28 +285,30 @@ const BurnBarrel = ({ issues, setIssues }) => {
     );
 };
 
-const AddCard = ({ estado_issue, setIssues, idProj }) => {
-    const [text, setText] = useState("");
+const AddCard = ({ estado_issue, setIssues, idProj}) => {
     const [adding, setAdding] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!text.trim().length) return;
+        if(e.target['nom_issue'].value === '' || e.target['estado_issue'].value === '') return
 
-        const newIssue = {
-            estado_issue,
-            nom_issue: text.trim(),
-            idProjecte: idProj
-        };
-        console.log(newIssue);
+        let getData = (e) => {
+            let data = {}
+            for (let index = 0; index < e.target.length-2; index++) {
+            data = {...data, [e.target[index].id]:e.target[index].value}
+            }
+            return data
+        }
+
+        const sendIssue = {...getData(e), idProjecte: idProj}
 
         const options = {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(newIssue),
+            body: JSON.stringify(sendIssue),
             credentials: 'include',
         }
 
@@ -304,49 +316,15 @@ const AddCard = ({ estado_issue, setIssues, idProj }) => {
             .then(res => res.json())
             .then(data => {
                 console.log("resp", data);
+                setIssues((pv) => [...pv, data])
             })
-            .catch(cosa => console.log(cosa))
+            .catch(cosa => console.log(JSON.parse(cosa)))
 
-        setIssues((pv) => [...pv, newIssue]);
+        ;
         setAdding(false);
     };
 
     return (
-        <>
-            {adding ? (
-                <motion.form layout onSubmit={handleSubmit}>
-                    <textarea
-                        onChange={(e) => setText(e.target.value)}
-                        autoFocus
-                        placeholder="Add new task..."
-                        className="w-full rounded border border-violet-400 bg-violet-400/20 p-3 text-sm text-neutral-50 placeholder-violet-300 focus:outline-0"
-                    />
-                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
-                        <button
-                            onClick={() => setAdding(false)}
-                            className="px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-                        >
-                            Close
-                        </button>
-                        <button
-                            type="submit"
-                            className="flex items-center gap-1.5 rounded bg-neutral-50 px-3 py-1.5 text-xs text-neutral-950 transition-colors hover:bg-neutral-300"
-                        >
-                            <span>Add</span>
-                            <FiPlus />
-                        </button>
-                    </div>
-                </motion.form>
-            ) : (
-                <motion.button
-                    layout
-                    onClick={() => setAdding(true)}
-                    className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs text-neutral-400 transition-colors hover:text-neutral-50"
-                >
-                    <span>Add issue</span>
-                    <FiPlus />
-                </motion.button>
-            )}
-        </>
+        <ButtonAddIssue handleSubmit={handleSubmit} isOpen={adding} setIsOpen={setAdding} setIssues={setIssues} info={estado_issue}></ButtonAddIssue>
     );
 };

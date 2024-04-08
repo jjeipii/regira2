@@ -17,6 +17,7 @@ export default () => {
             .then(resp => resp.json())
             .then(data => {
                 if (data.error) {
+                    console.error(data.error)
                     setError(true)
                 } else {
                     setProjectes(data);

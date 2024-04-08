@@ -52,9 +52,27 @@ const createItem = async (req,res,Model) => {
     }
 }
 
-const getAttributesIssue = async (req,res,Model ) => {
+const getEstadosIssue = async (req,res,Model ) => {
   try {
       const attributes = await Model.rawAttributes.estado_issue.values;
+      res.status(201).json(attributes);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+}
+
+const getTiposIssue = async (req,res,Model ) => {
+  try {
+      const attributes = await Model.rawAttributes.tipo_issue.values;
+      res.status(201).json(attributes);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+}
+
+const getPriorityIssue = async (req,res,Model ) => {
+  try {
+      const attributes = await Model.rawAttributes.priority.values;
       res.status(201).json(attributes);
   } catch (error) {
       res.status(400).json({ error: error.message });
@@ -67,5 +85,7 @@ module.exports = {
     createItem,
     readItemForUser,
     readItemsForUser,
-    getAttributesIssue
+    getEstadosIssue,
+    getTiposIssue,
+    getPriorityIssue
 }  
