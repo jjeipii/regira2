@@ -79,18 +79,17 @@ const SpringModal = ({ isOpen, setIsOpen, handleSubmit, info }) => {
 };
 
 const InputData = ({ field, info }) => {
-    const [data, setData] = useState(null)
-    const check = field === 'assignedUserId'
+    const [data, setData] = useState('')
 
     return (
         <div className="grid grid-cols-2 m-2 ">
             <span className=" text-right mr-2">
-                <label htmlFor={field} className=" capitalize">{check ? 'Assigned User' : field.replace('_', ' ')}</label>
+                <label htmlFor={field} className=" capitalize">{field.replace('_', ' ')}</label>
             </span>
             <span>
                 {
-                    field === "nom_issue" || field === "assignedUserId"
-                        ? <input id={field} className="text-black p-1 rounded" onChange={(e) => { setData(e.target.value) }} type={`${check ? 'number' : 'text'}`} />
+                    field === "nom_issue"
+                        ? <input id={field} className="text-black p-1 rounded" onChange={(e) => { setData(e.target.value) }} type='text' />
                         : <OtherInputs info={info} field={field}/>
                 }
             </span>
@@ -189,6 +188,6 @@ const Estados = ({ field, info }) => {
     )
 }
 
-const FIELDS = ["nom_issue", "tipo_issue", "priority", "estado_issue", "assignedUserId"]
+const FIELDS = ["nom_issue", "tipo_issue", "priority", "estado_issue"]
 
 export default ButtonAddIssue;

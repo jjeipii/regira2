@@ -215,7 +215,7 @@ const Card = ({ nom_issue, id, estado_issue, handleDragStart }) => {
                 onDragStart={(e) => handleDragStart(e, { nom_issue, id, estado_issue })}
                 className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
             >
-                <p className="text-sm text-neutral-100">{nom_issue}</p>
+                <p className="text-sm text-neutral-100"><span>{nom_issue}</span><span><i className="fa-solid fa-pencil"></i></span></p>
             </motion.div>
         </>
     );

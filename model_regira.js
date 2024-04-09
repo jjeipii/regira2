@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt'); // Importa la llibreria bcrypt per a encriptar
 // creem instancia de sequelize, indicant base de dades
 // en l'exemple: tipus sqlite, desada en memoria (s'esborra cada vegada)
 const sequelize = new Sequelize(
-    'regira2', 'root', '',
+    'regira2', 'root', 'root',
     {
         dialect: 'mysql',
         host: 'localhost',

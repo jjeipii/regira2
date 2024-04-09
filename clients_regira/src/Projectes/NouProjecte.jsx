@@ -1,44 +1,25 @@
 
 import { useEffect, useState } from "react";
 
-import { useNavigate, useParams } from 'react-router-dom';
-
 
 const API_URL = 'http://localhost:3000/api';
 
 
 export default () => {
-    const {idProj} = useParams()
-    const [nom_issue, setNomIssue] = useState('Problema Nuevo');
-    const [estados, setEstados] = useState([]);
-    const [estado_issue, setEstado] = useState();
+    const [nom_projecte, setNomProjecte] = useState('Problema Nuevo');
     const [error, setError] = useState(false)
     
     const opcions = {
         credentials: 'include',
     }
 
-    useEffect(() => {
-        fetch(API_URL + '/projectes/estados', opcions)
-            .then(resp => resp.json())
-            .then(data => {
-                if (data.error) {
-                    setError(true)
-                } else {
-                    setEstados(data);
-                    setEstado(data[0])
-                }
-            })
-    }, [])
 
     const crearPrjecte = (e) => {
 
         e.preventDefault();
         
             const data = {
-            nom_issue,
-            estado_issue,
-            idProjecte : idProj
+            nom_projecte,
         }
         console.log(data)
 
@@ -51,7 +32,7 @@ export default () => {
               credentials: 'include',
             }
         
-            fetch(API_URL+'/issue/new' , options)
+            fetch(API_URL+'/projecte/new' , options)
               .then(res => res.json())  
               .then(data => {
                 console.log("resp", data);
@@ -74,19 +55,10 @@ export default () => {
                         Nom
                     </label>
                     <input
-                        onInput={(e) => setNomIssue(e.target.value)}
-                        value={nom_issue}
+                        onInput={(e) => setNomProjecte(e.target.value)}
+                        value={nom_projecte}
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="nom_issue" type="text" placeholder="Nom" />
-                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="nom_issue">
-                        Estado
-                    </label>
-                    <select name="estados" className=" capitalize" onChange={(e) => setEstado(e.target.value)}>
-                        {estados.map((estadoM,key) => (
-                            <option key={key} value={estadoM} className=" capitalize">
-                                {estadoM}
-                            </option>
-                        ))}
-                    </select>
+
                 </div>
 
                 <div >

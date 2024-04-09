@@ -163,7 +163,7 @@ router.post('/issue/new', checkToken, async (req, res, next) => {
     if (!user) {
       return res.status(500).json({ error: 'User no trobat' }); // Retorna error 500 si no es troba l'usuari
     }
-    const { nom_issue, tipo_issue, priority, estado_issue, idProjecte  } = req.body;
+    const { nom_issue, tipo_issue, priority, estado_issue, idProjecte } = req.body;
     if (!nom_issue ) {
       return res.status(400).json({ error: 'Nom issue requerit' }); // Retorna error 400 si no es proporcionen el nom, email o contrasenya
     }
@@ -195,13 +195,14 @@ router.post('/issue/new', checkToken, async (req, res, next) => {
     if(!projecte){ 
       return res.status(500).json({ error: 'Projecte no encontrat' });
     }
+
     const item = await Issue.create({
       nom_issue,
       tipo_issue,
       priority,
       estado_issue,
       projectId: idProjecte,
-      usuariId: req.usuariId
+      usuariId: req.usuariId,
     })
     res.status(201).json(item); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
   } catch (error) {
