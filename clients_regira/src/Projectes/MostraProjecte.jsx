@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { FaFire } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 import ButtonAddIssue from "../Issues/NewIssue"
+import EditIssue from "../Issues/EditIssue"
 
 const API_URL = 'http://localhost:3000/api';
 const colors = ['text-red-200', 'text-yellow-200', 'text-blue-200', 'text-purple-200', 'text-green-200', 'text-neutral-200'];
@@ -100,6 +101,7 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
 
             let cardToTransfer = copy.find((c) => c.id.toString() === issueId);
             if (!cardToTransfer) return;
+
             cardToTransfer = { ...cardToTransfer, estado_issue };
 
             copy = copy.filter((c) => c.id.toString() !== issueId);
@@ -114,6 +116,25 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
 
                 copy.splice(insertAtIndex, 0, cardToTransfer);
             }
+            console.log(cardToTransfer.id)
+
+            const options = {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cardToTransfer),
+                credentials: 'include',
+            }
+    
+            fetch(API_URL + `/issues/${cardToTransfer.id}`, options)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("resp", data);
+                })
+                .catch(cosa => console.log({error: cosa}))
+    
+            ;
 
             setIssues(copy);
         }
@@ -195,7 +216,7 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
                     }`}
             >
                 {filteredCards.map((c) => {
-                    return <Card key={c.id} {...c} handleDragStart={handleDragStart} />;
+                    return <Card key={c.id} {...c} issue={c} setIssues={setIssues} handleDragStart={handleDragStart} idProj={idProj} />;
                 })}
                 <DropIndicator beforeId={null} estado_issue={estado_issue} />
                 <AddCard estado_issue={estado_issue} setIssues={setIssues} idProj={idProj}/>
@@ -204,7 +225,47 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
     );
 };
 
-const Card = ({ nom_issue, id, estado_issue, handleDragStart }) => {
+const Card = ({ nom_issue, id, estado_issue,issue, handleDragStart, idProj }) => {
+    const [edit, setEdit] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if(e.target['nom_issue'].value === '' || e.target['estado_issue'].value === '') return
+        let getData = (e) => {
+            
+            let cpIssue = {...issue}
+            delete cpIssue.id;
+
+            for (let index = 0; index < e.target.length-2; index++) {
+                cpIssue[e.target[index].id] = e.target[index].value 
+            }
+            return (cpIssue)
+        }
+
+        const sendIssue = {...getData(e)}
+
+        const options = {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sendIssue),
+            credentials: 'include',
+        }
+
+        fetch(API_URL + `/issues/${id}`, options)
+            .then(res => res.json())
+            .then(data => {
+                console.log("resp", data);
+                setIssues(sendIssue)
+            })
+            .catch(cosa => console.log(JSON.parse(cosa)))
+
+        ;
+        setEdit(false);
+    };
+
     return (
         <>
             <DropIndicator beforeId={id} estado_issue={estado_issue} />
@@ -215,7 +276,7 @@ const Card = ({ nom_issue, id, estado_issue, handleDragStart }) => {
                 onDragStart={(e) => handleDragStart(e, { nom_issue, id, estado_issue })}
                 className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
             >
-                <p className="text-sm text-neutral-100"><span>{nom_issue}</span><span><i className="fa-solid fa-pencil"></i></span></p>
+                <div className="text-sm text-neutral-100 flex justify-between"><span>{nom_issue}</span><EditIssue issue={issue} handleSubmit={handleSubmit} isOpen={edit} setIsOpen={setEdit}/></div>
             </motion.div>
         </>
     );
@@ -227,7 +288,7 @@ const DropIndicator = ({ beforeId, estado_issue }) => {
             data-before={beforeId || "-1"}
             data-estado_issue={estado_issue}
             className="my-0.5 h-0.5 w-full bg-violet-400 opacity-0"
-        />
+        /> 
     );
 };
 
