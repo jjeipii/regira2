@@ -15,7 +15,7 @@ const ButtonEditIssue = ({ isOpen, setIsOpen, handleSubmit, issue }) => {
             >
                 <span><i className="fa-solid fa-pencil"></i></span>
             </button>
-            <SpringModal isOpen={isOpen} handleSubmit={handleSubmit} issue={issue} setIsOpen={setIsOpen} />
+            <SpringModal issue={issue} handleSubmit={handleSubmit} isOpen={isOpen} setIsOpen={setIsOpen} />
         </div>
     );
 };
@@ -33,8 +33,8 @@ const SpringModal = ({ isOpen, setIsOpen, handleSubmit, issue }) => {
                     className="bg-slate-900/20 backdrop-blur p-8 fixed inset-0 z-50 grid place-items-center overflow-y-scroll cursor-pointer"
                 >
                     <motion.div
-                        initial={{ scale: 0, rotate: "50deg" }}
-                        animate={{ scale: 1, rotate: "0deg" }}
+                        // initial={{ scale: 0, rotate: "50deg" }}
+                        // animate={{ scale: 1, rotate: "0deg" }}
                         exit={{ scale: 0, rotate: "0deg" }}
                         onClick={(e) => e.stopPropagation()}
                         className="bg-gradient-to-br from-neutral-600 to-zinc-300 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
@@ -46,10 +46,10 @@ const SpringModal = ({ isOpen, setIsOpen, handleSubmit, issue }) => {
                                     <FaPencilAlt />
                                 </div>
                                 <h3 className="text-3xl font-bold text-center mb-2">
-                                    New issue
+                                    Edit issue
                                 </h3>
                                 <p className="text-center mb-6">
-                                    Complete all fields to create a new issue
+                                    Edit all what do you need.
                                 </p>
                                 <div className="flex justify-center items-center">
                                     <InputData issue={issue} />
@@ -108,13 +108,13 @@ const Inputs = ({ field, info }) => {
         return <Tipos field={field} info={info} />
     }
     if (field === "assignedUserId") {
-        return <TextNumber field={field} type="number" />
+        return <TextNumber field={field} info={info } type="number" />
     }
     return
 }
 
 const TextNumber = ({ field, type, info }) => {
-    const [defaultValue, setDefaultValue] = useState(info === null ? 0 : info)
+    const [defaultValue, setDefaultValue] = useState(info || '')
 
     return (
         <div className="grid grid-cols-2 mb-2">

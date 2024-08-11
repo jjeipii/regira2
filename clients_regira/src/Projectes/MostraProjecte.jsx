@@ -11,7 +11,7 @@ const colors = ['text-red-200', 'text-yellow-200', 'text-blue-200', 'text-purple
 
 export const MostraProjecte = () => {
     return (
-        <div className="h-screen w-full bg-neutral-900 text-neutral-50">
+        <div className=" w-full h-full bg-neutral-900  text-neutral-50">
             <Board />
         </div>
     );
@@ -22,6 +22,7 @@ const Board = () => {
     const [issues, setIssues] = useState([]);
     const [estados, setEstados] = useState([]);
     const [error, setError] = useState('');
+    const [issueChangeCount, setIssueChangeCount] = useState(0);
 
     useEffect(() => {
         const opcions = {
@@ -54,31 +55,32 @@ const Board = () => {
 
                 }
             });
-    }, []);
+    }, [issueChangeCount]);
     
 
 
     return (
-        <div className="flex h-full w-full gap-3 overflow-scroll p-12">
+        <div className="flex place-content-evenly h-full w-full overflow-y-auto gap-3 px-12 py-32">
             {
                 estados.map((estado, key) =>
                     <Column
                         key={key}
-                        nom_issue={estado}
+                        nom_estado={estado}
                         estado_issue={estado}
                         headingColor={`${colors[key]}`}
                         idProj={idProj}
                         issues={issues}
                         setIssues={setIssues}
+                        setIssueChangeCount={setIssueChangeCount}
                     />)
             }
 
-            <BurnBarrel issues={issues} setIssues={setIssues} />
+            <BurnBarrel issues={issues} setIssues={setIssues} setIssueChangeCount={setIssueChangeCount}/>
         </div>
     );
 };
 
-const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idProj }) => {
+const Column = ({ nom_estado, headingColor, issues, estado_issue, setIssues, idProj, setIssueChangeCount }) => {
     const [active, setActive] = useState(false);
 
     const handleDragStart = (e, issue) => {
@@ -97,8 +99,8 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
         const before = element.dataset.before || "-1";
 
         if (before !== issueId) {
-            let copy = [...issues];
 
+            setIssues((copy) =>{
             let cardToTransfer = copy.find((c) => c.id.toString() === issueId);
             if (!cardToTransfer) return;
 
@@ -116,7 +118,6 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
 
                 copy.splice(insertAtIndex, 0, cardToTransfer);
             }
-            console.log(cardToTransfer.id)
 
             const options = {
                 method: "PUT",
@@ -131,12 +132,12 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
                 .then(res => res.json())
                 .then(data => {
                     console.log("resp", data);
+                    
                 })
                 .catch(cosa => console.log({error: cosa}))
-    
-            ;
-
-            setIssues(copy);
+            return copy
+            })
+            
         }
     };
 
@@ -197,13 +198,13 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
         clearHighlights();
         setActive(false);
     };
-
+    
     const filteredCards = issues.filter((c) => c.estado_issue === estado_issue);
 
     return (
         <div className="w-56 shrink-0">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className={`font-medium ${headingColor}`}>{nom_issue}</h3>
+                <h3 className={`font-medium ${headingColor}`}>{nom_estado}</h3>
                 <span className="rounded text-sm text-neutral-400">
                     {filteredCards.length}
                 </span>
@@ -216,16 +217,16 @@ const Column = ({ nom_issue, headingColor, issues, estado_issue, setIssues, idPr
                     }`}
             >
                 {filteredCards.map((c) => {
-                    return <Card key={c.id} {...c} issue={c} setIssues={setIssues} handleDragStart={handleDragStart} idProj={idProj} />;
+                    return <Card key={c.id} {...c} issue={c} setIssues={setIssues} handleDragStart={handleDragStart} idProj={idProj} setIssueChangeCount={setIssueChangeCount}/>;
                 })}
-                <DropIndicator beforeId={null} estado_issue={estado_issue} />
-                <AddCard estado_issue={estado_issue} setIssues={setIssues} idProj={idProj}/>
+                <DropIndicator beforeId={null} estado_issue={estado_issue} setIssueChangeCount={setIssueChangeCount}/>
+                <AddCard estado_issue={estado_issue} setIssues={setIssues} idProj={idProj} setIssueChangeCount={setIssueChangeCount}/>
             </div>
         </div>
     );
 };
 
-const Card = ({ nom_issue, id, estado_issue,issue, handleDragStart, idProj }) => {
+const Card = ({ nom_issue, id, estado_issue, issue, setIssues,  handleDragStart, idProj, setIssueChangeCount}) => {
     const [edit, setEdit] = useState(false);
 
     const handleSubmit = (e) => {
@@ -257,12 +258,9 @@ const Card = ({ nom_issue, id, estado_issue,issue, handleDragStart, idProj }) =>
         fetch(API_URL + `/issues/${id}`, options)
             .then(res => res.json())
             .then(data => {
-                console.log("resp", data);
-                setIssues(sendIssue)
+                console.log("resp", data)
             })
-            .catch(cosa => console.log(JSON.parse(cosa)))
-
-        ;
+            .catch(cosa => console.log(cosa));
         setEdit(false);
     };
 
@@ -276,7 +274,8 @@ const Card = ({ nom_issue, id, estado_issue,issue, handleDragStart, idProj }) =>
                 onDragStart={(e) => handleDragStart(e, { nom_issue, id, estado_issue })}
                 className="cursor-grab rounded border border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing"
             >
-                <div className="text-sm text-neutral-100 flex justify-between"><span>{nom_issue}</span><EditIssue issue={issue} handleSubmit={handleSubmit} isOpen={edit} setIsOpen={setEdit}/></div>
+                <div className="text-sm text-neutral-100 flex justify-between"><span>{nom_issue}</span>
+                <EditIssue issue={issue} handleSubmit={handleSubmit} isOpen={edit} setIsOpen={setEdit}/></div>
             </motion.div>
         </>
     );
@@ -292,7 +291,7 @@ const DropIndicator = ({ beforeId, estado_issue }) => {
     );
 };
 
-const BurnBarrel = ({ issues, setIssues }) => {
+const BurnBarrel = ({ issues, setIssues, setIssueChangeCount }) => {
     const [active, setActive] = useState(false);
 
     const handleDragOver = (e) => {
@@ -325,9 +324,9 @@ const BurnBarrel = ({ issues, setIssues }) => {
             .then(res => res.json())
             .then(data => {
                 console.log("resp", data);
+                
             })
-            .catch(cosa => console.log(cosa))
-
+            .catch(cosa => console.log(cosa));
         setActive(false);
     };
 
@@ -346,7 +345,7 @@ const BurnBarrel = ({ issues, setIssues }) => {
     );
 };
 
-const AddCard = ({ estado_issue, setIssues, idProj}) => {
+const AddCard = ({ estado_issue, setIssues, idProj, setIssueChangeCount }) => {
     const [adding, setAdding] = useState(false);
 
     const handleSubmit = (e) => {
@@ -378,10 +377,9 @@ const AddCard = ({ estado_issue, setIssues, idProj}) => {
             .then(data => {
                 console.log("resp", data);
                 setIssues((pv) => [...pv, data])
+                
             })
-            .catch(cosa => console.log(JSON.parse(cosa)))
-
-        ;
+            .catch(cosa => console.log(cosa))
         setAdding(false);
     };
 

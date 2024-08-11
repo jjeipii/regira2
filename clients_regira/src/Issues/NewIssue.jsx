@@ -16,7 +16,7 @@ const ButtonAddIssue = ({ isOpen, setIsOpen, handleSubmit, info }) => {
                <span>Add card</span>
           <FiPlus />
             </button>
-            <SpringModal isOpen={isOpen} handleSubmit={handleSubmit} info={info} setIsOpen={setIsOpen} />
+            <SpringModal info={info} handleSubmit={handleSubmit} isOpen={isOpen} setIsOpen={setIsOpen}   />
         </div>
     );
 };
@@ -34,8 +34,8 @@ const SpringModal = ({ isOpen, setIsOpen, handleSubmit, info }) => {
                     className="bg-slate-900/20 backdrop-blur p-8 fixed inset-0 z-50 grid place-items-center overflow-y-scroll cursor-pointer"
                 >
                     <motion.div
-                        initial={{ scale: 0, rotate: "50deg" }}
-                        animate={{ scale: 1, rotate: "0deg" }}
+                        // initial={{ scale: 0, rotate: "50deg" }}
+                        // animate={{ scale: 1, rotate: "0deg" }}
                         exit={{ scale: 0, rotate: "0deg" }}
                         onClick={(e) => e.stopPropagation()}
                         className="bg-gradient-to-br from-neutral-600 to-zinc-300 text-white p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
@@ -82,10 +82,12 @@ const InputData = ({ field, info }) => {
     const [data, setData] = useState('')
 
     return (
-        <div className="grid grid-cols-2 m-2 ">
+        <div className="grid grid-cols-2 m-2 ">{
+            
             <span className=" text-right mr-2">
-                <label htmlFor={field} className=" capitalize">{field.replace('_', ' ')}</label>
+                <label htmlFor={field} className=" capitalize">{field === 'assignedUserId' ? 'Assigned User ID' : field.replace('_', ' ')}</label>
             </span>
+            }
             <span>
                 {
                     field === "nom_issue"
@@ -99,14 +101,24 @@ const InputData = ({ field, info }) => {
 
 const OtherInputs = ({field, info}) => {
     if (field === "estado_issue"){ 
-        return <Estados field={field} info={info} />
+        return <Estados field={field} info={info}/>
     }
     if (field === "priority"){
-        return <Priority field={field} info={info} />
+        return <Priority field={field} />
     }
     if (field === "tipo_issue"){
-        return <Tipos field={field} info={info} />
+        return <Tipos field={field} />
+    }if (field === "assignedUserId") {
+        return <TextNumber field={field} />
     }
+}
+
+const TextNumber = ({ field }) => {
+    const [defaultValue, setDefaultValue] = useState('')
+
+    return (
+         <input id={field}  type="number" className="text-black p-1 rounded" value={defaultValue} onChange={(e) => setDefaultValue(e.target.value)}/>
+    )
 }
 
 const Tipos = ({field}) => {
@@ -188,6 +200,6 @@ const Estados = ({ field, info }) => {
     )
 }
 
-const FIELDS = ["nom_issue", "tipo_issue", "priority", "estado_issue"]
+const FIELDS = ["nom_issue", "tipo_issue", "priority", "estado_issue", "assignedUserId"]
 
 export default ButtonAddIssue;

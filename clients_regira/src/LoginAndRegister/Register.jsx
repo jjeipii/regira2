@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'http://localhost:3000/api';
 
-export default () => {
+export default ({registerOn}) => {
 
     const [nom_usuari, setNomUsuari] = useState('Exmple');
     const [email_usuari, seteEmailUsuari] = useState('joanot@gmail.com');
@@ -81,9 +81,9 @@ export default () => {
                     <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                         Registrar
                     </button>
-                    <a className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
-                        Forgot Password?
-                    </a>
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={()=>registerOn(false)}>
+                        Login
+                    </button>
                 </div>
             </form>
             <p className="text-center text-gray-500 text-xs">

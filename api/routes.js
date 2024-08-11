@@ -196,6 +196,7 @@ router.post('/issue/new', checkToken, async (req, res, next) => {
     if(!projecte){ 
       return res.status(500).json({ error: 'Projecte no encontrat' });
     }
+    const assignedUserId = req.body.assignedUserId === '' ? null : req.body.assignedUserId;
 
     const item = await Issue.create({
       nom_issue,
@@ -204,14 +205,30 @@ router.post('/issue/new', checkToken, async (req, res, next) => {
       estado_issue,
       projectId: idProjecte,
       usuariId: req.usuariId,
+      assignedUserId
     })
+    
     res.status(201).json(item); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
   } catch (error) {
     res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
   }
 });
 
-router.put('/issues/:id', checkToken, async (req, res) => updateItem(req, res, Issue))
+router.put('/issues/:id', checkToken, async (req, res) => {
+  try {
+      const item = await Issue.findByPk(req.params.id);
+      if (!item) {
+          return res.status(404).json({ error: 'Item not found' });
+      }
+      if (req.body.assignedUserId === ''){
+        req.body.assignedUserId = null
+      }
+      await item.update(req.body);
+      res.json(item);
+  } catch (error) {
+      res.status(400).json({ error: error.message });
+  }
+})
 
 router.delete('/issue/delete',checkToken, async (req, res) => {
   try {
@@ -238,6 +255,64 @@ router.delete('/issue/delete',checkToken, async (req, res) => {
     res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
   }
 })
-  
+
+
+/*
+    Comments
+    Comments
+    Comments
+    Comments
+    Comments
+    
+*/
+router.post('/comment/new/:idIssue', checkToken, async (req, res, next) => {
+  try {
+    const user = await Usuari.findByPk(req.usuariId); // Cerca l'usuari pel seu ID
+    if (!user) {
+      return res.status(500).json({ error: 'User no trobat' }); // Retorna error 500 si no es troba l'usuari
+    }
+    const issue = await Issue.findByPk(req.params.idIssue);
+    if (!issue) {
+      return res.status(500).json({ error: 'Issue not found' }); // Retorna error 500 si no es troba l'usuari
+    }
+
+    const { nom_comment, comment } = req.body;
+
+    const newComment = await Comment.create({
+      nom_comment,
+      comment,
+      usuariId : req.usuariId,
+      issueId: req.params.idIssue
+    })
+    
+    res.status(201).json(newComment); // Retorna l'usuari creat amb el codi d'estat 201 (Creat)
+  } catch (error) {
+    res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
+  }
+});
+
+router.delete('/comment/delete',checkToken, async (req, res) => {
+  try {
+    const user = await Usuari.findByPk(req.usuariId); // Cerca l'usuari pel seu ID
+    if (!user) {
+      return res.status(500).json({ error: 'User no trobat' }); // Retorna error 500 si no es troba l'usuari
+    }
+    const { id } = req.body;
+    if ( !id ) {
+      return res.status(400).json({ error: 'Id no trobad' }); // Retorna error 400 si no es proporcionen el nom, email o contrasenya
+    }
+
+    // Eliminar la issue
+    const deletedComment = await Comment.destroy({ where: { id } });
+
+    if (!deletedComment) {
+      return res.status(404).json({ error: 'No se encontró los commentarios con el ID proporcionado' });
+    }
+
+    res.status(200).json({ message: 'Comentario eliminado correctamente' });
+  } catch (error) {
+    res.status(500).json({ error: error.message}); // Retorna error 500 amb el missatge d'error
+  }
+})
 
 module.exports = router;

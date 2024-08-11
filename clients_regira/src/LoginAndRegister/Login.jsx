@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = 'http://localhost:3000/api';
 
 
-export default () => {
+export default ({registerOn}) => {
 
     const [email_usuari, setEmail] = useState('joanot@gmail.com');
     const [password, setPassword] = useState('');
@@ -37,7 +37,7 @@ export default () => {
         .then(resp => resp.json())
         .then(data => {
             console.log("resp", data);
-            redirect('/')
+            redirect('/projectes')
             
         })
         .catch(err => console.log(err))
@@ -49,7 +49,7 @@ export default () => {
 
 
 
-        <div className="w-full max-w-xs">
+        <div className=" w-full max-w-xs">
             <form onSubmit={logueja} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                 <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email_usuari">
@@ -73,12 +73,13 @@ export default () => {
                     <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                         Sign In
                     </button>
-                    <a className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="#">
-                        Forgot Password?
-                    </a>
+
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button" onClick={()=>registerOn(true)}>
+                        Register
+                    </button>
                 </div>
             </form>
-            <p className="text-center text-gray-500 text-xs">
+            <p className="text-center text-white text-xs">
                 &copy;2020 Acme Corp. All rights reserved.
             </p>
         </div>

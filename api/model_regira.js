@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt'); // Importa la llibreria bcrypt per a encriptar
 // creem instancia de sequelize, indicant base de dades
 // en l'exemple: tipus sqlite, desada en memoria (s'esborra cada vegada)
 const sequelize = new Sequelize(
-    'regira2', 'root', '',
+    'regira2', 'root', 'root',
     {
         dialect: 'mysql',
         host: 'localhost',
@@ -82,7 +82,7 @@ const Issue = sequelize.define('issue', {
     },
     estado_issue: {
         type: Sequelize.ENUM,
-        values : ['blocklog','in progress','review', 'testing', 'done',"won't do"],
+        values : ['blocklog','in progress','review', 'testing', 'done'],
         allowNull: true,
         unique: false,
     }
@@ -134,17 +134,17 @@ Usuari.hasMany(Comment, { foreignKey: 'usuariId', onDelete: 'CASCADE' }); // Eli
 Comment.belongsTo(Usuari, { foreignKey: 'usuariId' });
 
 Usuari.hasMany(Issue, { foreignKey: 'usuariId', onDelete: 'CASCADE' }); // Eliminación en cascada cuando se elimina un usuario
-Issue.belongsTo(Usuari, { foreignKey: 'usuariId', onDelete: 'CASCADE', as: 'creator' });
-Issue.belongsTo(Usuari, { foreignKey: 'assignedUserId', onDelete: 'CASCADE', as: 'assignedUser' });
+Issue.belongsTo(Usuari, { foreignKey: 'usuariId', as: 'creator' });
+Issue.belongsTo(Usuari, { foreignKey: 'assignedUserId', as: 'assignedUser' });
 
-Projecte.hasMany(Issue, { foreignKey: 'projectId', onDelete: 'CASCADE' }); // Eliminación en cascada cuando se elimina un proyecto
+Projecte.hasMany(Issue, { foreignKey: 'projectId', onDelete: 'CASCADE', onUpdate: 'CASCADE', }); // Eliminación en cascada cuando se elimina un proyecto
 Issue.belongsTo(Projecte, { foreignKey: 'projectId' });
 
-Issue.belongsToMany(Tag, { through: 'tag_issue', onDelete: 'CASCADE' }); // Eliminación en cascada cuando se elimina una issue o un tag
-Tag.belongsToMany(Issue, { through: 'tag_issue', onDelete: 'CASCADE' });
+Issue.belongsToMany(Tag, { through: 'tag_issue', onDelete: 'CASCADE', onUpdate: 'CASCADE', }); // Eliminación en cascada cuando se elimina una issue o un tag
+Tag.belongsToMany(Issue, { through: 'tag_issue', onDelete: 'CASCADE', onUpdate: 'CASCADE', });
 
 // Relaciones entre modelos con eliminación en cascada
-Issue.hasMany(Comment, { foreignKey: 'issueId', onDelete: 'CASCADE' }); // Eliminación en cascada cuando se elimina una issue
+Issue.hasMany(Comment, { foreignKey: 'issueId', onDelete: 'CASCADE',onUpdate: 'CASCADE', }); // Eliminación en cascada cuando se elimina una issue
 Comment.belongsTo(Issue, { foreignKey: 'issueId' }); // Un comentario pertenece a un issue
 
 //sequelize.sync({force: true}); //

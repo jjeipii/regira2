@@ -21,8 +21,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/projectes" element={<LlistaProjectes />} />
-          <Route path="/projecte/:idProj" element={<MostraProjecte />} />
-          <Route path="/projecte/nou" element={<NouProjecte />} />
+          <Route path="/projectes/:idProj" element={<MostraProjecte />} />
+          <Route path="/projectes/nou" element={<NouProjecte />} />
           
         </Route>
       </Routes>

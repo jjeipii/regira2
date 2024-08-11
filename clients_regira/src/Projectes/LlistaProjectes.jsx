@@ -30,8 +30,9 @@ export default () => {
     }
 
     return (<>
-        <h1>Llista de projectes</h1>
-
+        <div className='flex justify-between'>
+            <h1>Llista de projectes</h1> <Link to={`/projectes/nou`}><button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline'>Nou projecte</button></Link>
+        </div>
 
         <div className="flex flex-col">
             <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -57,7 +58,7 @@ export default () => {
                                     <td className="whitespace-nowrap px-6 py-4 font-medium">{bolet.id}</td>
                                     <td className="whitespace-nowrap px-6 py-4">{bolet.nom_projecte}</td>
                                     <td className="whitespace-nowrap px-6 py-4">{bolet.desc_projecte}</td>
-                                    <td className="whitespace-nowrap px-9 py-4 "><Link to={`/projecte/${bolet.id}`}><i className="fa-solid fa-pencil"></i></Link></td>
+                                    <td className="whitespace-nowrap px-9 py-4 "><Link to={`/projectes/${bolet.id}`}><i className="fa-solid fa-pencil"></i></Link></td>
                                     
                                 </tr>
                                )
